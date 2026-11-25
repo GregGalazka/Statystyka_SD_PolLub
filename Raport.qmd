@@ -1,0 +1,1254 @@
+---
+title: "Analiza właściwości mechanicznych zaprawy cementowej zbrojonej włóknem kokosowym (babassu)"
+subtitle: "Statystyka stosowana — Projekt zaliczeniowy"
+author: "Grzegorz Gałązka"
+date: today
+date-format: "DD MMMM YYYY"
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 3
+    toc-title: "Spis treści"
+    toc-location: left
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{=html}
+<style>
+  p {
+    text-align: justify;
+  }
+  
+  
+  p { margin-bottom: 0.3em; }
+  ol, ul { margin-bottom: 0.5em; }
+  li { margin-bottom: 0.2em; }
+  
+  p, a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+</style>
+```
+
+------------------------------------------------------------------------
+
+# Wspęt
+
+Niniejsza praca stanowi projekt zaliczeniowy realizowany w ramach przedmiotu z zakresu statystyki stosowanej. Głównym celem analizy jest opracowanie i porównanie modeli statystycznych prognozujących właściwości mechaniczne (ze szczególnym uwzględnieniem wytrzymałości na rozciąganie oraz ściskanie) kompozytu o kruchej osnowie modyfikowanej włóknami. Podstawę empiryczną analizy stanowią autentyczne dane laboratoryjne pozyskane z otwartego repozytorium Mendeley Data, obejmujące porównywawcze do mojej pracy doktorskie parametry technologiczne. W toku procedury analitycznej zaimplementowane zostaną modele statystyczne o zróżnicowanym stopniu złożoności. W modelach pominięto wszelkie dyskusje oraz rozważania teoretyczne, koncentrując się wyłącznie na przedstawieniu procesu obliczeniowego. Na podstawie zestawienia ich metryk jakościowych i błędów predykcji przeprowadzona zostanie ocena porównawcza, która pozwoli wyłonić model charakteryzujący się najwyższą dokładnością w prognozowaniu właściwości mechanicznych badanego materiału.
+
+## [**Założenia wyjsciowe**]{style="font-size: 1.3em;"}
+
+Zarówno dobór danych, jak i metody ich analizy zostały dostosowane do procedury planowanej w ramach mojej rozprawy doktorskiej. Projektowane badania obejmują ocenę wytrzymałości mechanicznej kompozytów o osnowie ceramicznej, w których jako zmienne dyskretne uwzględniona zostanie m.in. zawartość oraz długość włókien wzmacniających. Istotnym uwarunkowaniem metodycznym jest w tym przypadku relatywnie niewielka liczebność próby (od 30 do 100 próbek).
+
+W literaturze przedmiotu zidentyfikowano publikację o bardzo zbliżonym profilu badawczym, dotyczącą prognozowania wytrzymałości zaprawy zbrojonej włóknami z palmy babassu przy użyciu sztucznych sieci neuronowych: Źródło dan:
+
+[https://data.mendeley.com/datasets/p2j6psch8r/1https://data.mendeley.com/datasets/p2j6psch8r/1](https://data.mendeley.com/datasets/p2j6psch8r/1)
+
+Źródłó artykułu naukowego:\
+<https://www.researchgate.net/publication/388579278_Strength_prediction_of_mortar_reinforced_with_babassu_coconut_fiber_using_artificial_neural_networks>
+
+## [**Cel badawczy**:]{style="font-size: 1.3em;"}
+
+\
+Celem analizy jest wyłonienie spośród trzech modeli tego, który charakteryzuje się najwyższą dokładnością predykcji właściwości mechanicznych (wytrzymałość na rozciąganie oraz ściskanie) osnowy na podstawie jej składu.
+
+[**Metodologia modelowania statystycznego**]{style="font-size: 1.3em;"}
+
+Aby ocenić wpływ poszczególnych parametrów technologicznych (w/c, długość oraz ilość włókien) na właściwości wytrzymałościowe kompozytu, przyjęto trójetapową ścieżkę modelowania z wykorzystaniem ekosystemu `tidymodels`. Ze względu na niewielką liczebność próby (ryzyko przeuczenia) oraz strukturę zmiennych wejściowych (trzy główne predyktory przyjmujące dyskretne, wielopoziomowe wartości), proces analityczny oparto na podziale zbioru na dane treningowe i testowe oraz zastosowaniu walidacji krzyżowej (V-fold Cross-Validation). W ramach tak przygotowanej analizy porównane zostaną następujące modele:
+
+1.  **Regresja liniowa (Linear Regression)**: Stanowi najprostszy model do zastosowania i służy jako punkt odniesienia dla innych, bardziej zaawansowanych modeli. Ze względu na naturę zmiennych (wartości dyskretne, numeryczne) model może zostać z powodzeniem zastosowany.
+2.  **Regresja wielomianowa 2. stopnia**: rozszerzenie modelu liniowego mające na celu uchwycenie nieliniowych zależności (np. faktu, że optymalna ilość włókna może zależeć od zastosowanego stosunku w/c).
+3.  **Algorytm Lasu Losowego (Random Forest)**: z aawansowany model oparty na drzewach decyzyjnych, wprowadzony w celu wychwycenia wysoce złożonych, nieliniowych wzorców w danych materiałowych, z którymi tradycyjne modele parametryczne mogą sobie nie poradzić.
+
+## [**Metodologia badań laboratoryjnych**]{style="font-size: 1.3em;"}
+
+Metodologia łączy badania laboratoryjne z modelowaniem sieciami neuronowymi. Najpierw wykonano 51 próbek zaprawy z różną zawartością włókien orzecha babassu, testując ich konsystencję oraz wytrzymałość na rozciąganie i ściskanie po 28 dniach. Uzyskane dane podzielono na zbiór treningowy (80%) i testowy (20%). Następnie wytrenowano sieci neuronowe algorytmem ELM, optymalizując ich strukturę walidacją krzyżową, aby na podstawie parametrów mieszanki przewidywać jej parametry wytrzymałościowe.
+
+[**Analiza zmiennych: zmienne objaśnane i zmienne objaśniające**]{style="font-size: 1.3em;"}
+
+Próbki zaprawy przygotowano w proporcji masowej spoiwa do piasku 1:3 (cement CP IV-32 i naturalny piasek) w mieszarce laboratoryjnej. Dozowanie modyfikowano poprzez zmianę wskaźnika woda/cement oraz dodatek włókien z epikarpu orzecha babassu o zróżnicowanej długości i udziale objętościowym. Po wymieszaniu składników zweryfikowano konsystencję świeżej zaprawy, a następnie uformowano walce o wymiarach 50 × 100 mm. Po dobie próbki rozformowano i poddano 28-dniowej pielęgnacji wodnej, po której wykonano testy mechaniczne. Łącznie w 13 seriach wykonano 51 próbek.
+
+**Lista zmiennych objaśniających:**
+
+- **Zawartość cementu** (`Cement`) – masa cementu przypadająca na jednostkę objętości zaprawy \[$\text{kg/m}^3$\].
+
+- **Zawartość piasku** (`Sand`) – masa kruszywa drobnego przypadająca na jednostkę objętości zaprawy \[$\text{kg/m}^3$\].
+
+- **Wskaźnik woda/cement** (`w/c`) – bezwymiarowy stosunek masowy wody do cementu, przyjmujący wartości: 0,45; 0,59 oraz 0,61.
+
+- **Maksymalna długość włókna** (`Maximum fiber length`) – wymiar geometryczny zastosowanego zbrojenia \[mm\], przyjmujący poziomy: 0 mm (seria bez włókien), 34 mm (typ Fb1) oraz 73 mm (typ Fb2).
+
+- **Zawartość włókien** (`Fiber percentage`) – udział objętościowy włókien w całkowitej objętości zaprawy, wynoszący: 0,00 (0%), 0,01 (1%) lub 0,02 (2%).
+
+- **Konsystencja / rozpływ** (`Slump`) – wskaźnik konsystencji świeżej mieszanki określony na stoliku rozpływowym według normy NBR 7215 \[mm\].
+
+**Lista zmiennych objaśnianych**
+
+- **Wytrzymałość na rozciąganie przy rozłupywaniu** (`Tensile strength`) – naprężenie niszczące określone metodą ściskania diametralnego próbek walcowych zgodnie z normą NBR 7222 \[MPa\].
+
+- **Wytrzymałość na ściskanie** (`Compressive strength`) – naprężenie niszczące określone w osiowym badaniu ściskania próbek walcowych zgodnie z normą NBR 7215 \[MPa\].
+
+# Eksploracyjna Analiza Danych
+
+## **Charakterystyka zbioru i statystyki opisowe**
+
+Rozkłady obu zmiennych objaśnianych zauważalnie odchylają się od idealnego rozkładu normalnego:
+
+- **Skośność:** Wytrzymałość na rozciąganie i ściskanie wykazują asymetrię prawostronną (dodatnią skośność). Większość wyników jest niższa lub przeciętna, natomiast skrajnie wysokie naprężenia występują rzadko (co jest silniej widoczne przy rozciąganiu).
+
+- **Kurtoza:** Oba rozkłady mają dodatnią kurtozę (są leptokurtyczne). Oznacza to, że wyniki są mocniej skoncentrowane wokół wartości centralnych niż w klasycznym rozkładzie normalnym, co jest szczególnie wyraźne w przypadku ściskania.
+
+```{r}
+#| label: eda-przygotowanie
+#| code-fold: true
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(report)
+library(readxl)
+library(ggstatsplot)
+
+dane <- read_excel("BCFRM.xlsx") |>
+  select(
+    w_c = `w/c`,
+    dlugosc_wlokna = `Maximum fiber length (mm)`,
+    zawartosc_wlokna = `Fiber (%)`,
+    wytrzymalosc_rozciaganie = `Tensile strength (MPa)`,
+    wytrzymalosc_sciskanie = `Compressive strength (MPa)`,
+    konsystencja = `Slump (mm)`,
+    zawartosc_cementu = `Cement (kg/m³)`,
+    zawartosc_piasku = `Sand (kg/m³)`
+  ) |>
+  mutate(
+    dlugosc_wlokna_f = factor(dlugosc_wlokna, levels = c(0, 34, 73), labels = c("0 mm", "34 mm", "73 mm")),
+    zawartosc_wlokna_f = factor(zawartosc_wlokna, levels = c(0, 0.01, 0.02), labels = c("0%", "1%", "2%")),
+    w_c_f = factor(w_c),
+    zawartosc_cementu_f = factor(round(zawartosc_cementu, 1)),
+    zawartosc_piasku_f = factor(round(zawartosc_piasku, 1))
+  )
+
+dane |>
+  select(wytrzymalosc_rozciaganie, wytrzymalosc_sciskanie) |>
+  report::report_table() |>
+  print_html()
+
+```
+
+## Rozkład smiennych objaśnianych
+
+```{r}
+#| label: eda-histogramy
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 5
+
+library(tidyverse)
+library(patchwork)
+
+p1 <- ggplot(dane, aes(x = wytrzymalosc_sciskanie)) +
+  geom_histogram(bins = 8, color = "white", fill = "steelblue") +
+  labs(
+    title = "Wytrzymałość na ściskanie",
+    x = "Naprężenie niszczące [MPa]", 
+    y = "Liczba próbek"
+  ) +
+  theme_minimal(base_size = 13)
+
+p2 <- ggplot(dane, aes(x = wytrzymalosc_rozciaganie)) +
+  geom_histogram(bins = 8, color = "white", fill = "steelblue") +
+  labs(
+    title = "Wytrzymałość na rozciąganie",
+    x = "Naprężenie niszczące [MPa]", 
+    y = "Liczba próbek"
+  ) +
+  theme_minimal(base_size = 13)
+
+p1 + p2
+
+```
+
+## **Macierz korelacji i problem współliniowości (Multicollinearity)**
+
+- **Wytrzymałość na rozciąganie:** Zmienna ta wykazuje statystycznie istotne korelacje liniowe ze wszystkimi pozostałymi parametrami oprócz ściskania (korelacja $r = 0.27$ jest przekreślona). Najsilniejsze, ujemne relacje łączą ją z zawartością włókna ($r = -0.65$) oraz jego długością ($r = -0.59$). Umiarkowane i dodatnie powiązania wykazuje z zawartością cementu, zawartością piasku oraz konsystencją (w każdym z tych przypadków $r = 0.48$), a umiarkowaną korelację ujemną posiada ze wskaźnikiem w/c ($r = -0.48$).
+
+- **Wytrzymałość na ściskanie:** Zmienna wyróżniająca się całkowitym brakiem statystycznie istotnych relacji liniowych z jakąkolwiek inna zmienną w zbiorze. Wszystkie wartości na przecięciu z jej wierszem/kolumną – takie jak relacje z rozciąganiem ($r = 0.27$), parametrami zbrojenia ($-0.17$ i $-0.28$) czy parametrami osnowy (np. $0.01$ dla w/c i $-0.01$ dla cementu i piasku) – są przekreślone znakiem "X", co oznacza ich statystyczną nieistotność i brak wpływu na macierzy.
+
+- **Wskaźnik w/c:** Zmienna wykazująca perfekcyjną, pełną korelację ujemną z zawartością cementu ($r = -1$) oraz piasku ($r = -1$), co potwierdza ich stuprocentową współliniowość. Ponadto cechuje się najsilniejszą, dodatnią i istotną korelacją z konsystencją ($r = 0.66$) oraz umiarkowanie ujemną z wytrzymałością na rozciąganie ($r = -0.48$). Jej korelacje z parametrami włókien (przekreślone $-0.08$ i $0.10$) oraz ściskaniem (przekreślone $0.01$) są statystycznie nieistotne.
+
+- **Zawartość cementu:** Cechuje się idealną, pełną korelacją dodatnią z zawartością piasku ($r = 1$) oraz pełną korelacją ujemną z w/c ($r = -1$). Wykazuje silną ujemną relację z konsystencją ($r = -0.64$) oraz umiarkowaną dodatnią z rozciąganiem ($r = 0.48$). Posiada wyłącznie mało wpływowe, nieistotne statystycznie korelacje z obiema zmiennymi dotyczącymi włókien oraz z wytrzymałością na ściskanie (pola te są przekreślone).
+
+- **Zawartość piasku:** Przyjmuje dokładnie takie same współczynniki korelacji jak zawartość cementu. Posiada perfekcyjną istotną relację z cementem ($r = 1$) i w/c ($r = -1$), istotną ujemną korelację z konsystencją ($r = -0.64$) oraz umiarkowaną dodatnią z rozciąganiem ($r = 0.48$). Pozostałe wartości dla tej zmiennej nie wykazują istotności.
+
+- **Zawartość włókna:** Wyróżnia się najsilniejszą w obrębie całej macierzy, statystycznie istotną korelacją ujemną z wytrzymałością na rozciąganie ($r = -0.65$). Ponadto silnie koreluje dodatnio z długością włókna ($r = 0.66$) oraz wykazuje umiarkowaną korelację ujemną z konsystencją ($r = -0.43$). Relacje tej zmiennej ze wskaźnikiem w/c, cementem, piaskiem oraz ściskaniem oznaczono znakiem "X", co klasyfikuje je jako statystycznie mało wpływowe i nieistotne.
+
+- **Długość włókna:** Silnie skorelowana z zawartością włókna ($r = 0.66$) oraz posiadająca drugą co do siły, istotną korelację ujemną z rozciąganiem ($r = -0.59$). Podobnie jak przy zawartości, wszystkie pozostałe parametry – ściskanie, konsystencja, w/c, cement i piasek – nie wykazują z długością włókna żadnych statystycznie istotnych powiązań (wartości przekreślone).
+
+- **Konsystencja:** Najsilniej powiązana dodatnio ze wskaźnikiem w/c ($r = 0.66$). Cechuje się statystycznie istotnymi, równymi sobie korelacjami ujemnymi z zawartością cementu i piasku (obie wartości po $r = -0.64$) oraz słabszą korelacją ujemną z zawartością włókna ($r = -0.43$). Jej jedyna istotna korelacja ze zmiennymi wynikowymi to umiarkowany, dodatni związek z rozciąganiem ($r = 0.48$), podczas gdy korelacja ze ściskaniem to nieistotne statystycznie $-0.12$.
+
+```{r}
+#| label: eda-korelacja
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 9
+#| fig-height: 9
+
+library(tidyverse)
+library(ggstatsplot)
+
+dane |>
+  select(where(is.numeric)) |>
+  ggcorrmat(
+    title = "Macierz korelacji parametrów zaprawy",
+    colors = c("#B2182B", "white", "#2166AC"),
+    matrix.type = "lower"
+  )
+
+```
+
+## **Wizualizacja głównych zależności**
+
+[**Wpływ zawartość włókna na zmienne objaśniane**]{style="font-size: 1.3em;"}
+
+W lewym wykresie obserwuje się silny, negatywny wpływ dodatku zbrojenia. Średnia wytrzymałość dla czystej zaprawy (0%) wynosi $4.60$ MPa. Przy dodatku 1% spada ona do $3.54$ MPa, a przy 2% do $3.39$ MPa. Test ANOVA wskazuje, że zmienna ta tłumaczy aż 59% całkowitej zmienności wyników rozciągania (wielkość efektu $\hat{\omega}_p^2 = 0.59$). W prawym wykresie obserwuję się braku istotnego wpływu. Wartość $p = 0.30$ (znacznie powyżej progu 0.05) oraz znikoma siła efektu ($\hat{\omega}_p^2 = 0.02$) wskazują, że na podstawie tej próby badawczej (n=51) nie możemy udowodnić, iż zawartość włókna systematycznie i powtarzalnie zmienia wytrzymałość na ściskanie.
+
+```{r}
+#| label: eda-wizualizacja-zawartosc-wlokna
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 14
+#| fig-height: 7
+#| column: page-right
+
+library(tidyverse)
+library(ggstatsplot)
+library(patchwork)
+
+p1 <- ggbetweenstats(
+  data = dane,
+  x = zawartosc_wlokna_f,
+  y = wytrzymalosc_rozciaganie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ zawartości włókna na rozciąganie",
+  xlab = "Zawartość włókna",
+  ylab = "Wytrzymałość na rozciąganie [MPa]"
+)
+
+p2 <- ggbetweenstats(
+  data = dane,
+  x = zawartosc_wlokna_f,
+  y = wytrzymalosc_sciskanie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ zawartości włókna na ściskanie",
+  xlab = "Zawartość włókna",
+  ylab = "Wytrzymałość na ściskanie [MPa]"
+)
+
+p1 + p2
+```
+
+[**Wpływ długości włókna na zmienne objaśniane**]{style="font-size: 1.3em;"}
+
+Na lewym wykresie pokazany jest silny negatywny wpływ. Grupa kontrolna bez włókien (0 mm) osiąga najwyższą średnią $\hat{\mu}_{mean} = 4.60$ MPa. Wprowadzenie włókien obniża tę wartość do $3.48$ MPa (dla 34 mm) oraz $3.43$ MPa (dla 73 mm). Test ANOVA zwraca wartość $p = 1.22e-06$, co oznacza absolutną pewność statystyczną. Co więcej, wskaźnik wielkości efektu (omega kwadrat) wynosi $\hat{\omega}_p^2 = 0.60$. To gigantyczny wynik – oznacza to, że sam fakt obecności włókna tłumaczy aż 60% całej wariancji (zmienności) wytrzymałości na rozciąganiekontrolna bez włókien (0 mm) osiąga najwyższą średnią $\hat{\mu}_{mean} = 4.60$ MPa. Wprowadzenie włókien obniża tę wartość do $3.48$ MPa (dla 34 mm) oraz $3.43$ MPa (dla 73 mm). W prawym wykresie, mimo wizualnego spadku test ANOWA mówi Wartość $p = 0.21$ jest wyraźnie wyższa od progu 0.05, a siła efektu jest znikoma ($\hat{\omega}_p^2 = 0.05$). Oznacza to, że rozrzut wyników wewnątrz poszczególnych grup jest na tyle duży, że nie możemy ze stuprocentową pewnością stwierdzić, iż wydłużanie włókna systematycznie osłabia ściskanie.
+
+```{r}
+#| label: eda-wizualizacja-dlugosc-wlokna
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 14
+#| fig-height: 7
+#| column: page-right
+
+library(tidyverse)
+library(ggstatsplot)
+library(patchwork)
+
+p1 <- ggbetweenstats(
+  data = dane,
+  x = dlugosc_wlokna_f,
+  y = wytrzymalosc_rozciaganie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ długości włókna na rozciąganie",
+  xlab = "Długość włókna",
+  ylab = "Wytrzymałość na rozciąganie [MPa]"
+)
+
+p2 <- ggbetweenstats(
+  data = dane,
+  x = dlugosc_wlokna_f,
+  y = wytrzymalosc_sciskanie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ długości włókna na ściskanie",
+  xlab = "Długość włókna",
+  ylab = "Wytrzymałość na ściskanie [MPa]"
+)
+
+p1 + p2
+```
+
+[**Wpływ cementu na zmienne objaśniane**]{style="font-size: 1.3em;"}
+
+W lewym wykresie Wzrost zawartości cementu w mieszance z $420.7 \text{ kg/m}^3$ do $451.1 \text{ kg/m}^3$ powoduje istotny statystycznie wzrost średniej wytrzymałości na rozciąganie z $3.48$ MPa do $4.30$ MPa. Test ANOVA potwierdza tę zależność (wartość $p = 7.25e-03$, siła efektu $\hat{\omega}_p^2 = 0.25$). Różnice są szczególnie widoczne między najwyższą dawką cementu a dwiema niższymi (testy post-hoc pokazują $p = 0.02$ i $p = 0.04$). Na prawym wykresie statystyczna zawartość cementu nie ma tutaj żadnego wpływu na średnią wytrzymałość na ściskanie. Wartość $p = 0.94$ oraz siła efektu $0.00$ jednoznacznie wskazują na brak istotnych różnic.
+
+```{r}
+#| label: eda-wizualizacja-cement
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 14
+#| fig-height: 7
+#| column: page-right
+
+library(tidyverse)
+library(ggstatsplot)
+library(patchwork)
+
+p1 <- ggbetweenstats(
+  data = dane,
+  x = zawartosc_cementu_f,
+  y = wytrzymalosc_rozciaganie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ cementu na rozciąganie",
+  xlab = "Zawartość cementu [kg/m³]",
+  ylab = "Wytrzymałość na rozciąganie [MPa]"
+)
+
+p2 <- ggbetweenstats(
+  data = dane,
+  x = zawartosc_cementu_f,
+  y = wytrzymalosc_sciskanie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ cementu na ściskanie",
+  xlab = "Zawartość cementu [kg/m³]",
+  ylab = "Wytrzymałość na ściskanie [MPa]"
+)
+
+p1 + p2
+```
+
+[**Wpływ piasku na zmienne objaśniane**]{style="font-size: 1.3em;"}
+
+W lewym wykresie Test ANOVA zwraca wartość $p = 7.25e-03$, co jest wynikiem znacznie poniżej progu $0.05$. W przypadku prawego wykresu test ANOVA daje wynik $p = 0.94$, a siła efektu to równe $0.00$. Zawartość piasku ma istotny statystycznie wpływ na wytrzymałość na rozciąganie, natomiast nie wykazuje absolutnie żadnego wpływu na średnią wytrzymałość na ściskanie.
+
+```{r}
+#| label: eda-wizualizacja-piasek
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 14
+#| fig-height: 7
+#| column: page-right
+
+library(tidyverse)
+library(ggstatsplot)
+library(patchwork)
+
+p1 <- ggbetweenstats(
+  data = dane,
+  x = zawartosc_piasku_f,
+  y = wytrzymalosc_rozciaganie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ piasku na rozciąganie",
+  xlab = "Zawartość piasku [kg/m³]",
+  ylab = "Wytrzymałość na rozciąganie [MPa]"
+)
+
+p2 <- ggbetweenstats(
+  data = dane,
+  x = zawartosc_piasku_f,
+  y = wytrzymalosc_sciskanie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ piasku na ściskanie",
+  xlab = "Zawartość piasku [kg/m³]",
+  ylab = "Wytrzymałość na ściskanie [MPa]"
+)
+
+p1 + p2
+```
+
+[**Wpływ wskażnika w/c na zmienne objaśniane**]{style="font-size: 1.3em;"}
+
+Na lewym wykresie $p = 7.25e-03$ (czyli $0.00725$). Ponieważ jest to dużo mniej niż 0.05, różnica wytrzymałości na rozciąganie między grupami w/c jest statystycznie istotna.Na prawym wykresie $p = 0.94$. Ponieważ jest to wynik drastycznie wyższy niż 0.05, różnice wytrzymałości na ściskanie są nieistotne statystycznie (przypadkowe).
+
+```{r}
+#| label: eda-wizualizacja-wc
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 14
+#| fig-height: 7
+#| column: page-right
+
+library(tidyverse)
+library(ggstatsplot)
+library(patchwork)
+
+p1 <- ggbetweenstats(
+  data = dane,
+  x = w_c_f,
+  y = wytrzymalosc_rozciaganie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ wskaźnika w/c na rozciąganie",
+  xlab = "Wskaźnik w/c",
+  ylab = "Wytrzymałość na rozciąganie [MPa]"
+)
+
+p2 <- ggbetweenstats(
+  data = dane,
+  x = w_c_f,
+  y = wytrzymalosc_sciskanie,
+  type = "parametric",
+  violin.args = list(width = 0, alpha = 0, color = "transparent", fill = "transparent"),
+  title = "Wpływ wskaźnika w/c na ściskanie",
+  xlab = "Wskaźnik w/c",
+  ylab = "Wytrzymałość na ściskanie [MPa]"
+)
+
+p1 + p2
+```
+
+[**Wpływ konsystencji na zmienne objaśniane**]{style="font-size: 1.3em;"}
+
+Z wykresów można zinterpretować że brak silnej, prostej zależności liniowej, jest wysoka wariancja i nakładanie się efektów, i że istnieją klastry punktów
+
+```{r}
+#| label: eda-liniowosc-konsystencja
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 14
+#| fig-height: 5
+#| column: page-right
+
+library(tidyverse)
+library(patchwork)
+
+p1 <- ggplot(dane, aes(x = konsystencja, y = wytrzymalosc_rozciaganie)) +
+  geom_jitter(size = 2, alpha = 0.6, width = 1.5, height = 0) +
+  geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
+  labs(
+    x = "Konsystencja (rozpływ) [mm]", 
+    y = "Wytrzymałość na rozciąganie [MPa]",
+    title = "Konsystencja a Rozciąganie"
+  ) +
+  theme_minimal(base_size = 13)
+
+p2 <- ggplot(dane, aes(x = konsystencja, y = wytrzymalosc_sciskanie)) +
+  geom_jitter(size = 2, alpha = 0.6, width = 1.5, height = 0) +
+  geom_smooth(method = "lm", se = FALSE, color = "firebrick") +
+  labs(
+    x = "Konsystencja (rozpływ) [mm]", 
+    y = "Wytrzymałość na ściskanie [MPa]",
+    title = "Konsystencja a Ściskanie"
+  ) +
+  theme_minimal(base_size = 13)
+
+p1 + p2
+```
+
+[**Liczebność grup**]{style="font-size: 1.3em;"}
+
+Wykres ten służy ocenie zbalansowania danych ze względu na główne parametry (zawartość włókna, długość włókna, wskaźnik w/c). Zbiór jest niezbalansowany. Kładzie silniejszy nacisk na zaprawy zmodyfikowane względem osnowy bazowej, co może sprawić, że modele będą lepiej "uczyły się" wzorców dla kompozytów niż dla samej matrycy cementowej. Na podstawie tego faktu pod czas budowania zbiorów testowego i treningowego wymusi na algorytmie aby procent próbek z każdej grupy był odpowiedni.
+
+```{r}
+#| label: eda-liczebnosci-grup
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 4
+
+library(tidyverse)
+library(patchwork)
+
+p_wlokno_zaw <- ggplot(dane, aes(x = zawartosc_wlokna_f)) +
+  geom_bar(fill = "steelblue", color = "white") +
+  labs(x = "Zawartość włókna", y = "Liczba próbek", title = "Liczebność: Zawartość") +
+  theme_minimal(base_size = 13)
+
+p_wlokno_dl <- ggplot(dane, aes(x = dlugosc_wlokna_f)) +
+  geom_bar(fill = "steelblue", color = "white") +
+  labs(x = "Długość włókna", y = "Liczba próbek", title = "Liczebność: Długość") +
+  theme_minimal(base_size = 13)
+
+p_wc <- ggplot(dane, aes(x = w_c_f)) +
+  geom_bar(fill = "steelblue", color = "white") +
+  labs(x = "Wskaźnik w/c", y = "Liczba próbek", title = "Liczebność: w/c") +
+  theme_minimal(base_size = 13)
+
+p_wlokno_zaw + p_wlokno_dl + p_wc
+```
+
+[**Relacja wytrzymałości**]{style="font-size: 1.3em;"}
+
+Wykres ten obrazuje fizyczną i statystyczną korelację między dwiema głównymi cechami wytrzymałościowymi, niezależnie od składu mieszanki. Punkty pomiarowe układają się wzdłuż widocznej linii trendu (zaznaczonej kolorem bordowym), co potwierdza spodziewaną, pozytywną korelację. Po mimo tego punkty są mocno "rozstrzelone" wokół czerwonej linii trendu. Oznacza to, że znajomość samej wytrzymałości na ściskanie nie pozwala idealnie przewidzieć wytrzymałości na rozciąganie. Szary obszar wokół linii trendu (przedział ufności) pokazuje, że zależność ta charakteryzuje się dość sporym rozrzutem w centralnej części wykresu.
+
+```{r}
+#| label: eda-relacja-wytrzymalosci
+#| code-fold: true
+#| message: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 5
+
+library(tidyverse)
+
+ggplot(dane, aes(x = wytrzymalosc_sciskanie, y = wytrzymalosc_rozciaganie)) +
+  geom_point(size = 3, alpha = 0.7, color = "#2166AC") +
+  geom_smooth(method = "lm", color = "firebrick", se = TRUE, alpha = 0.2) +
+  labs(
+    title = "Ściskanie a Rozciąganie",
+    x = "Wytrzymałość na ściskanie [MPa]",
+    y = "Wytrzymałość na rozciąganie [MPa]"
+  ) +
+  theme_minimal(base_size = 13)
+
+```
+
+# Budowa modelu
+
+## Podział danych na próbę treningową i testową
+
+Do podziału danych zostanie zastosowany podział w proporcjach 80% do 20% oraz wykorzysta się podziału warstwowego względem zawartości włókna. Dzieki temu upewnimy się, że do małego zbioru testowego trafią zarówno próbki referencyjne ja (0%) jak i te zbrojone, proporcjonalnie to ich występowania w oryginalnych danych.
+
+```{r}
+#| label: podzial-danych
+#| message: false
+#| warning: false
+
+library(tidymodels)
+library(gt)
+library(dplyr)
+
+# Ustawienie ziarna dla powtarzalności
+set.seed(2026) 
+
+# Podział stratyfikowany (80/20)
+podzial_danych <- initial_split(dane, prop = 0.80, strata = zawartosc_wlokna_f)
+dane_treningowe <- training(podzial_danych)
+dane_testowe <- testing(podzial_danych)
+
+# Wyświetlenie rozmiarów
+cat("Rozmiar zbioru treningowego (do uczenia):", nrow(dane_treningowe), "obserwacji\n")
+cat("Rozmiar zbioru testowego (do weryfikacji):", nrow(dane_testowe), "obserwacji\n\n")
+
+# Funkcja pomocnicza do generowania tabel podsumowujących z zachowaniem oryginalnego rzędu
+generuj_tabele_rozkladu <- function(zbior_danych, tytul) {
+  zbior_danych |>
+    group_by(zawartosc_wlokna_f) |>
+    summarise(
+      `Liczba próbek` = n(),
+      `Udział [%]` = round((n() / nrow(zbior_danych)) * 100, 1)
+    ) |>
+    rename(`Zawartość włókna` = zawartosc_wlokna_f) |>
+    # Używamy arrange, aby upewnić się, że kolejność to 0%, 1%, 2% (ponieważ to factor)
+    arrange(`Zawartość włókna`) |>
+    gt() |>
+    tab_header(title = tytul)
+}
+
+# Wygenerowanie i wyświetlenie tabel dla obu zbiorów
+tabela_trening <- generuj_tabele_rozkladu(dane_treningowe, "Rozkład próbek - Zbiór treningowy")
+tabela_test <- generuj_tabele_rozkladu(dane_testowe, "Rozkład próbek - Zbiór testowy")
+
+# Wyświetlenie tabel (jedna pod drugą)
+tabela_trening
+tabela_test
+```
+
+[**Strategia ewaluacji modeli**]{style="font-size: 1.3em;"} Wszelkie analizy zjawisk (w tym diagnostyka błędów, szacowanie parametrów i wstępna weryfikacja założeń) w Rozdziale 4 prowadzone są wyłącznie w oparciu o zbiór treningowy. Służy to wykalibrowaniu algorytmów i sprawdzeniu ich zdolności do wychwytywania fizycznych zależności materiałowych. Jednakże ostateczne, obiektywne porównanie zdolności predykcyjnych wszystkich kandydatów (i wybór najlepszego z nich) odbędzie się w Rozdziale 5, z użyciem odłożonego, niewidzianego wcześniej zbioru testowego. Pozwoli to uniknąć zjawiska przeuczenia (overfittingu) i sprawdzić, jak modele radzą sobie w warunkach rzeczywistych z zupełnie nowymi recepturami.
+
+## Przygotowanie schematu danych i budowa modelu końcowego
+
+W środowisku `tidymodels` zdefiniowano odrębne schematy przekształceń (tzw. *recipes*) dla modeli przewidujących wytrzymałość na rozciąganie oraz ściskanie. Na podstawie wniosków z etapu eksploracji danych (EDA) wprowadzono następujące modyfikacje predyktorów:
+
+- `zawartosc_cementu` i `zawartosc_piasku`: Zmienne te zostały usunięte z powodu zidentyfikowanej w fazie EDA idealnej, pełnej współliniowości (współczynnik korelacji $r = -1$) ze wskaźnikiem w/c.
+
+- Ze względu na duże różnice w wartościach predyktorów, co mogłoby skutkować problemami podczas obliczeń, wykonano ich standaryzację, sprowadzając zmienne o różnych rzędach wielkości do wspólnej skali, co jest warunkiem koniecznym dla algorytmów takich jak regresja wielomianowa.
+
+```{r}
+#| label: definicja-przepisow
+#| message: false
+#| warning: false
+
+library(tidymodels)
+library(gt)
+
+# 1. PRZEPIS DLA WYTRZYMAŁOŚCI NA ROZCIĄGANIE
+rec_rozciaganie <- recipe(wytrzymalosc_rozciaganie ~ ., data = dane_treningowe) |>
+  step_rm(wytrzymalosc_sciskanie, zawartosc_cementu, zawartosc_piasku, ends_with("_f")) |>
+  step_normalize(all_numeric_predictors())
+
+# 2. PRZEPIS DLA WYTRZYMAŁOŚCI NA ŚCISKANIE
+rec_sciskanie <- recipe(wytrzymalosc_sciskanie ~ ., data = dane_treningowe) |>
+  step_rm(wytrzymalosc_rozciaganie, zawartosc_cementu, zawartosc_piasku, ends_with("_f")) |>
+  step_normalize(all_numeric_predictors())
+
+# TEST: Fizyczne wykonanie kroków (tylko do podglądu dla rozciągania)
+dane_po_przepisie <- rec_rozciaganie |> 
+  prep() |> 
+  bake(new_data = NULL)
+
+# Wyświetlenie pierwszych 5 wierszy w formie estetycznej tabeli
+dane_po_przepisie |> 
+  head(5) |> 
+  gt() |> 
+  tab_header(
+    title = "Struktura danych po przekształceniach",
+    subtitle = "Znormalizowane predyktory i oryginalna zmienna wynikowa (pierwsze 5 obserwacji)"
+  ) |> 
+  fmt_number(columns = everything(), decimals = 3)
+```
+
+[**Modele końcowe**]{style="font-size: 1.3em;"}
+
+Poniżej zdefiniowano docelowe układy zmiennych (tzw. modele strukturalne), które posłużą jako podstawa do obliczeń w kolejnych etapach pracy:
+
+`Tensile strength` ∼ `w/c` + `Maximum fiber length` + `Fiber percentage` + `Slump`
+
+oraz
+
+`Compressive strength` ∼ `w/c` + `Maximum fiber length` + `Fiber percentage` + `Slump`
+
+Powyższy zestaw predyktorów został wybrany bezpośrednio na podstawie wyników macierzy korelacji oraz analizy wpływu zmiennych z etapu EDA. Zdecydowano się użyć dokładnie tego samego układu danych startowych we wszystkich trzech modelach statystycznych (regresji liniowej, wielomianowej i lesie losowym).
+
+Ujednolicenie danych wejściowych jest kluczowe dla rzetelnej analizy porównawczej. Pozwala to bezpośrednio sprawdzić i porównać, jak różne modele radzą sobie z przewidywaniem wytrzymałości kompozytu, gdy dysponują identycznymi informacjami początkowymi.
+
+# Stosowanie modeli statystycznych
+
+W tym kroku zdefiniowano kompletne środowiska pracy. Proces ten polega na hermetycznym połączeniu przygotowanych wcześniej schematów danych z wybranymi algorytmami matematycznymi (silnikami). Skonfigurowano dwa główne silniki obliczeniowe: klasyczny model liniowy (obsługujący również transformacje wielomianowe) oraz algorytm lasu losowego. Dla każdej z badanych cech wytrzymałościowych utworzono odrębne potoki, co gwarantuje niezależność obliczeń i zapobiega wyciekowi danych.\
+Kod backendowy:
+
+```{r}
+#| label: modele-kandydackie-definicja
+#| message: false
+#| warning: false
+
+library(tidymodels)
+
+# ==========================================
+# 1. ROZSZERZENIE PRZEPISÓW (WIELOMIANY)
+# ==========================================
+# Wykorzystujemy bazowe przepisy zdefiniowane w sekcji 3.2
+rec_poly_rozciaganie <- rec_rozciaganie |> 
+  step_poly(all_numeric_predictors(), degree = 2)
+
+rec_poly_sciskanie <- rec_sciskanie |> 
+  step_poly(all_numeric_predictors(), degree = 2)
+
+# ==========================================
+# 2. DEFINICJA SILNIKÓW (ALGORYTMÓW)
+# ==========================================
+silnik_lm <- linear_reg() |> 
+  set_engine("lm") |> 
+  set_mode("regression")
+
+# Algorytm drzewiasty wymaga pakietu 'ranger' (upewnij się, że jest zainstalowany)
+silnik_rf <- rand_forest(trees = 500, min_n = 5) |> 
+  set_engine("ranger", importance = "permutation") |> 
+  set_mode("regression")
+
+# ==========================================
+# 3. TWORZENIE ŚRODOWISK PRACY (WORKFLOWS)
+# ==========================================
+# --- Środowiska dla ROZCIĄGANIA ---
+wf_lm_rozciaganie <- workflow() |> 
+  add_recipe(rec_rozciaganie) |> 
+  add_model(silnik_lm)
+
+wf_poly_rozciaganie <- workflow() |> 
+  add_recipe(rec_poly_rozciaganie) |> 
+  add_model(silnik_lm)
+
+wf_rf_rozciaganie <- workflow() |> 
+  add_recipe(rec_rozciaganie) |> 
+  add_model(silnik_rf)
+
+
+# --- Środowiska dla ŚCISKANIA ---
+wf_lm_sciskanie <- workflow() |> 
+  add_recipe(rec_sciskanie) |> 
+  add_model(silnik_lm)
+
+wf_poly_sciskanie <- workflow() |> 
+  add_recipe(rec_poly_sciskanie) |> 
+  add_model(silnik_lm)
+
+wf_rf_sciskanie <- workflow() |> 
+  add_recipe(rec_sciskanie) |> 
+  add_model(silnik_rf)
+```
+
+## Analiza danych - Regresaja liniowa:
+
+[**Estymacja parametrów modelu**]{style="font-size: 1.3em;"}
+
+Regresja liniowa opisuje przewidywaną wartość zmiennej objaśnianej jako prostą, liniową funkcję zmiennych objaśniających (predyktorów). W pierwszej kolejności algorytm, wykorzystując dane ze zbioru treningowego, oblicza nieznane parametry modelu (tzw. współczynniki $\beta$). Ponieważ badamy dwie niezależne cechy mechaniczne kompozytu, dopasowano dwa odrębne modele.
+
+```{r}
+#| label: 4-1-1-lm-dopasowanie
+#| message: false
+#| warning: false
+
+library(tidymodels)
+library(gt)
+
+# Dopasowanie (trenowanie) modeli na danych treningowych
+model_lm_fit_rozciaganie <- wf_lm_rozciaganie |> fit(data = dane_treningowe)
+model_lm_fit_sciskanie <- wf_lm_sciskanie |> fit(data = dane_treningowe)
+
+# Estetyczna tabela współczynników dla ROZCIĄGANIA
+tidy(model_lm_fit_rozciaganie) |> 
+  mutate(across(where(is.numeric), ~ round(., 4))) |> 
+  gt() |> 
+  tab_header(
+    title = "Estymacja parametrów modelu liniowego",
+    subtitle = "Zmienna objaśniana: Wytrzymałość na rozciąganie"
+  ) |> 
+  fmt_number(columns = where(is.numeric), decimals = 4)
+
+# Estetyczna tabela współczynników dla ŚCISKANIA
+tidy(model_lm_fit_sciskanie) |> 
+  mutate(across(where(is.numeric), ~ round(., 4))) |> 
+  gt() |> 
+  tab_header(
+    title = "Estymacja parametrów modelu liniowego",
+    subtitle = "Zmienna objaśniana: Wytrzymałość na ściskanie"
+  ) |> 
+  fmt_number(columns = where(is.numeric), decimals = 4)
+```
+
+Tabela podsumowująca prezentuje wyestymowane wartości współczynników (kolumna `estimate`). Ponieważ w modelu zastosowano standaryzację predyktorów, bezpośrednie porównanie wartości bezwzględnych w tej kolumnie wskazuje na siłę wpływu danej zmiennej na wytrzymałość zaprawy. Wpływ statystycznie istotny mają jedynie parametry o wartości $p < 0.05$ w kolumnie `p.value`. Dla rozciągania kluczowymi zmiennymi są `w_c` oraz `zawartosc_wlokna`. Co ciekawe, w przypadku ściskania żaden z badanych parametrów zbrojenia nie osiągnął progu istotności statystycznej, a decydujący wpływ (choć słaby) wykazała `konsystencja` ($p = 0.023$).
+
+[**Ocena dopasowania i predykcja (Zbiór treningowy)**]{style="font-size: 1.3em;"}
+
+Aby sprawdzić, jak dobrze modele matematyczne odwzorowują dane fizyczne, obliczono uniwersalne miary błędu. Najważniejsze z nich to $R^2$ (informujący, jaki procent całkowitej zmienności wytrzymałości został wyjaśniony przez model) oraz RMSE (pierwiastek błędu średniokwadratowego), który mówi, jak duży jest przeciętny błąd predykcji wyrażony w megapaskalach (MPa).
+
+```{r}
+#| label: 4-1-2-lm-predykcja-trening
+#| message: false
+#| warning: false
+
+library(ggplot2)
+library(patchwork)
+library(gt)
+
+# --- TABELE BŁĘDÓW PREDYKCJI ---
+# Obliczenie predykcji dla zbioru treningowego 
+lm_trening_pred_rozciaganie <- augment(model_lm_fit_rozciaganie, new_data = dane_treningowe)
+lm_trening_pred_sciskanie <- augment(model_lm_fit_sciskanie, new_data = dane_treningowe)
+
+# Metryki dla ROZCIĄGANIA i R^2 z glance
+metryki_rozciaganie <- metrics(lm_trening_pred_rozciaganie, truth = wytrzymalosc_rozciaganie, estimate = .pred)
+
+# Wypisanie tabeli dla rozciągania w gt
+metryki_rozciaganie |> 
+  select(.metric, .estimate) |> 
+  gt() |> 
+  tab_header(title = "Miary błędu (Rozciąganie)") |> 
+  fmt_number(columns = .estimate, decimals = 3)
+
+# Metryki dla ŚCISKANIA
+metryki_sciskanie <- metrics(lm_trening_pred_sciskanie, truth = wytrzymalosc_sciskanie, estimate = .pred)
+
+# Wypisanie tabeli dla ściskania w gt
+metryki_sciskanie |> 
+  select(.metric, .estimate) |> 
+  gt() |> 
+  tab_header(title = "Miary błędu (Ściskanie)") |> 
+  fmt_number(columns = .estimate, decimals = 3)
+
+
+# --- WYKRESY ---
+p_rozciaganie <- ggplot(lm_trening_pred_rozciaganie, aes(x = wytrzymalosc_rozciaganie, y = .pred)) +
+  geom_point(color = "#2c7fb8", size = 2) +
+  geom_abline(lty = 2, color = "red", linewidth = 1) +
+  coord_obs_pred() +
+  labs(
+    title = "Model Liniowy: Rozciąganie",
+    x = "Rzeczywista wytrzymałość [MPa]",
+    y = "Przewidywana [MPa]"
+  ) +
+  theme_minimal(base_size = 10)
+
+p_sciskanie <- ggplot(lm_trening_pred_sciskanie, aes(x = wytrzymalosc_sciskanie, y = .pred)) +
+  geom_point(color = "#2c7fb8", size = 2) +
+  geom_abline(lty = 2, color = "red", linewidth = 1) +
+  coord_obs_pred() +
+  labs(
+    title = "Model Liniowy: Ściskanie",
+    x = "Rzeczywista wytrzymałość [MPa]",
+    y = "Przewidywana [MPa]"
+  ) +
+  theme_minimal(base_size = 10)
+
+p_rozciaganie + p_sciskanie
+```
+
+Na powyższych wykresach przerywana, czerwona linia reprezentuje idealne odwzorowanie (gdzie wyliczona predykcja jest równa wynikom z laboratorium). Jak widać, o ile dla rozciągania punkty formują w miarę zwarty układ wzdłuż osi, o tyle w przypadku ściskania model liniowy wykazuje olbrzymi rozrzut i niską zdolność tłumaczenia wariancji wyników, co sugeruje, że zależności te nie mają charakteru liniowego. Miary dopasowania i wykresy błędu jednoznacznie wskazują na słabość klasycznej regresji liniowej w tym zagadnieniu. Choć model przewidywania rozciągania tłumaczy ok. 73% zmienności wyników ($R^2 = 0.736$), to na wykresie widać wyraźne niedoszacowanie wartości najwyższych (powyżej 5 MPa). Model przewidywania ściskania całkowicie nie poradził sobie z zadaniem ($R^2$ na poziomie 20%, ogromny rozrzut punktów względem linii idealnej).
+
+[**Diagnostyka modelu (Sprawdzanie założeń)**]{style="font-size: 1.3em;"}
+
+Podstawowym wymogiem dla poprawności klasycznej regresji liniowej jest to, aby jej błędy (reszty) posiadały rozkład normalny i charakteryzowały się stałą wariancją. Zweryfikowano to za pomocą standardowych wykresów diagnostycznych.
+
+```{r}
+#| label: 4-1-3-lm-diagnostyka
+#| message: false
+#| warning: false
+
+library(ggfortify)
+
+silnik_dopasowany_rozciaganie <- extract_fit_engine(model_lm_fit_rozciaganie)
+silnik_dopasowany_sciskanie <- extract_fit_engine(model_lm_fit_sciskanie)
+
+# Wykresy dla rozciągania
+autoplot(silnik_dopasowany_rozciaganie, which = 1:2) + 
+  theme_minimal() + 
+  plot_annotation(title = "Diagnostyka reszt - Wytrzymałość na rozciąganie")
+
+# Wykresy dla ściskania
+autoplot(silnik_dopasowany_sciskanie, which = 1:2) + 
+  theme_minimal() + 
+  plot_annotation(title = "Diagnostyka reszt - Wytrzymałość na ściskanie")
+```
+
+Wykresy Q-Q (po prawej stronie) wykazują stosunkowo poprawne dopasowanie rozkładu reszt do rozkładu normalnego (punkty oscylują blisko przerywanej przekątnej). Znacznie słabiej wypada jednak analiza reszt względem wartości dopasowanych (wykresy po lewej). Widoczne na nich niebieskie linie trendu błędu wyraźnie "falują" zamiast podążać płasko wzdłuż osi zero. Nielosowy układ tych punktów to inżynierski dowód na to, że relacja pomiędzy recepturą a wytrzymałością zaprawy wykracza poza zwykłą liniowość. Zjawisko to w pełni uzasadnia wdrożenie algorytmów uwzględniających efekty krzywoliniowe i interakcje, co stanowi przedmiot kolejnych podrozdziałów.
+
+## Analiza danych - Regresja Wielomianowa 2. Stopnia
+
+W odpowiedzi na nieliniowy układ błędów predykcji zaobserwowany w klasycznej regresji, rozszerzono przestrzeń hipotez o model wielomianowy drugiego rzędu. Transformacja ta (zastosowana na etapie przepisów środowiska *tidymodels*) polega na wprowadzeniu do równania podniesionych do kwadratu wartości poszczególnych predyktorów technologicznych. Pozwala to krzywym dopasowania na przybranie kształtu parabol, co powinno znacznie lepiej aproksymować fizyczne granice nośności badanych kompozytów.
+
+[**Estymacja parametrów modelu (Wielomian)**]{style="font-size: 1.3em;"}
+
+W modelu 2. stopnia dla czterech predyktorów liczba wyestymowanych parametrów znacząco rośnie, ponieważ algorytm oblicza osobne współczynniki zarówno dla wartości liniowych, jak i potęg.
+
+```{r}
+#| label: 4-2-1-poly-dopasowanie
+#| message: false
+#| warning: false
+
+library(tidymodels)
+library(gt)
+
+# Dopasowanie (trenowanie) modeli wielomianowych na danych treningowych
+model_poly_fit_rozciaganie <- wf_poly_rozciaganie |> fit(data = dane_treningowe)
+model_poly_fit_sciskanie <- wf_poly_sciskanie |> fit(data = dane_treningowe)
+
+# Estetyczna tabela współczynników dla ROZCIĄGANIA
+tidy(model_poly_fit_rozciaganie) |> 
+  mutate(across(where(is.numeric), ~ round(., 4))) |> 
+  gt() |> 
+  tab_header(
+    title = "Estymacja parametrów: Regresja Wielomianowa 2. st.",
+    subtitle = "Zmienna objaśniana: Wytrzymałość na rozciąganie"
+  ) |> 
+  fmt_number(columns = where(is.numeric), decimals = 4)
+
+# Estetyczna tabela współczynników dla ŚCISKANIA
+tidy(model_poly_fit_sciskanie) |> 
+  mutate(across(where(is.numeric), ~ round(., 4))) |> 
+  gt() |> 
+  tab_header(
+    title = "Estymacja parametrów: Regresja Wielomianowa 2. st.",
+    subtitle = "Zmienna objaśniana: Wytrzymałość na ściskanie"
+  ) |> 
+  fmt_number(columns = where(is.numeric), decimals = 4)
+```
+
+Bezpośrednia ocena pojedynczych współczynników (`estimate`) jest tu utrudniona, ponieważ każdy predyktor rozbito na człon liniowy i potęgowy. Występujące w tabelach wartości ujemne są poprawne i matematycznie wskazują na spadek wytrzymałości po przekroczeniu pewnej wartości optymalnej (parabola skierowana w dół). Z kolei brak obliczeń (`NA`) dla zmiennej `zawartosc_wlokna_poly_2` wynika wyłącznie z tego, że cecha ta przyjmowała w eksperymencie tylko trzy wartości – algorytm automatycznie odrzucił ten redundantny składnik, zapobiegając błędowi współliniowości.
+
+[**Ocena dopasowania i predykcja (Zbiórtreningowy)**]{style="font-size: 1.3em;"}
+
+Kluczowym elementem weryfikacji jest zestawienie miar błędu z poprzednim, prostszym modelem liniowym. Wzrost wskaźnika $R^2$ oraz spadek RMSE oznaczać będzie poprawę jakości opisu zjawiska.
+
+```{r}
+#| label: 4-2-2-poly-predykcja-trening
+#| message: false
+#| warning: false
+
+library(ggplot2)
+library(patchwork)
+library(gt)
+
+# Obliczenie predykcji dla modelu wielomianowego
+poly_trening_pred_rozciaganie <- augment(model_poly_fit_rozciaganie, new_data = dane_treningowe)
+poly_trening_pred_sciskanie <- augment(model_poly_fit_sciskanie, new_data = dane_treningowe)
+
+# Metryki dla ROZCIĄGANIA
+metryki_poly_rozciaganie <- metrics(poly_trening_pred_rozciaganie, truth = wytrzymalosc_rozciaganie, estimate = .pred)
+
+metryki_poly_rozciaganie |> 
+  select(.metric, .estimate) |> 
+  gt() |> 
+  tab_header(title = "Miary błędu - Wielomian (Rozciąganie)") |> 
+  fmt_number(columns = .estimate, decimals = 3)
+
+# Metryki dla ŚCISKANIA
+metryki_poly_sciskanie <- metrics(poly_trening_pred_sciskanie, truth = wytrzymalosc_sciskanie, estimate = .pred)
+
+metryki_poly_sciskanie |> 
+  select(.metric, .estimate) |> 
+  gt() |> 
+  tab_header(title = "Miary błędu - Wielomian (Ściskanie)") |> 
+  fmt_number(columns = .estimate, decimals = 3)
+
+
+# --- WYKRESY PREDYKCJI ---
+p_poly_rozciaganie <- ggplot(poly_trening_pred_rozciaganie, aes(x = wytrzymalosc_rozciaganie, y = .pred)) +
+  geom_point(color = "#1c9099", size = 2) +
+  geom_abline(lty = 2, color = "red", linewidth = 1) +
+  coord_obs_pred() +
+  labs(
+    title = "Model Wielomianowy: Rozciąganie",
+    x = "Rzeczywista wytrzymałość [MPa]",
+    y = "Przewidywana [MPa]"
+  ) +
+  theme_minimal(base_size = 10)
+
+p_poly_sciskanie <- ggplot(poly_trening_pred_sciskanie, aes(x = wytrzymalosc_sciskanie, y = .pred)) +
+  geom_point(color = "#1c9099", size = 2) +
+  geom_abline(lty = 2, color = "red", linewidth = 1) +
+  coord_obs_pred() +
+  labs(
+    title = "Model Wielomianowy: Ściskanie",
+    x = "Rzeczywista wytrzymałość [MPa]",
+    y = "Przewidywana [MPa]"
+  ) +
+  theme_minimal(base_size = 10)
+
+p_poly_rozciaganie + p_poly_sciskanie
+```
+
+Wdrożenie transformacji wielomianowej przyniosło wymierne korzyści, co jest szczególnie widoczne w przypadku modelowania wytrzymałości na ściskanie. Wskaźnik $R^2$ dla ściskania wzrósł ponad dwukrotnie (z $0.20$ w modelu liniowym do $0.52$), a błąd RMSE spadł z $2.27$ do $1.75$ MPa, co wizualnie objawia się wyraźnym zagęszczeniem punktów wokół osi idealnego odwzorowania. Dla wytrzymałości na rozciąganie poprawa jest mniej radykalna, ale wciąż zauważalna ($R^2$ wzrosło z $0.73$ do $0.78$, a błąd RMSE zmalał do $0.31$ MPa). Wyniki te potwierdzają słuszność uwzględnienia efektów nieliniowych w opisie badanego kompozytu.
+
+[**Diagnostyka założeń modelu (Analiza reszt)**]{style="font-size: 1.3em;"}
+
+Sprawdzamy, czy transformacja wielomianowa zdołała zniwelować "falowanie" reszt, które zarzuciliśmy zwykłemu modelowi liniowemu w poprzedniej sekcji. Wyodrębnienie silników do analizy diagnostycznej:\
+
+```{r}
+#| label: 4-2-3-poly-diagnostyka
+#| message: false
+#| warning: false
+
+library(ggfortify)
+
+silnik_poly_dopasowany_rozciaganie <- extract_fit_engine(model_poly_fit_rozciaganie)
+silnik_poly_dopasowany_sciskanie <- extract_fit_engine(model_poly_fit_sciskanie)
+
+# Wykresy dla ROZCIĄGANIA (z wbudowanym tytułem)
+autoplot(silnik_poly_dopasowany_rozciaganie, which = 1:2) + 
+  theme_minimal() + 
+  labs(title = "Diagnostyka (Wielomian) - ROZCIĄGANIE")
+
+# Wykresy dla ŚCISKANIA (z wbudowanym tytułem)
+autoplot(silnik_poly_dopasowany_sciskanie, which = 1:2) + 
+  theme_minimal() +
+  labs(title = "Diagnostyka (Wielomian) - ŚCISKANIE")
+```
+
+Zastosowanie transformacji wielomianowej przyniosło oczekiwany skutek, wizualnie "wypłaszczając" linię trendu błędów na wykresach *Residuals vs Fitted* (szczególnie widać to dla modelu wytrzymałości na rozciąganie). Oznacza to, że model drugiego stopnia znacznie lepiej radzi sobie z wymogiem homoskedastyczności i poprawniej opisuje nieliniową naturę zależności w kompozycie.
+
+Niemniej jednak klasyczne modele parametryczne, do których zalicza się regresja wielomianowa, wciąż wykazują pewną wrażliwość na nieliczne wartości odstające (obserwowane jako pojedyncze punkty wyraźnie oddalone od głównej chmury na osi pionowej, np. punkt oznaczony numerem 7).
+
+## Analiza danych Algorytm Lasu Losowego
+
+Las Losowy jest algorytmem nieparametrycznym z dziedziny uczenia maszynowego (Machine Learning). Opiera się on na tworzeniu zespołu (w naszym przypadku 500) niezależnych drzew decyzyjnych. Jego największą inżynierską zaletą jest zdolność do automatycznego wychwytywania bardzo złożonych, nieliniowych wzorców oraz interakcji pomiędzy składnikami zaprawy, bez konieczności spełniania rygorystycznych założeń statystycznych.
+
+W przypadku algorytmów typu "black-box" (czarna skrzynka), jakim jest Las Losowy, nie generuje się tabel z estymowanymi współczynnikami ($\beta$), ponieważ ostateczna predykcja jest wynikiem "głosowania" wszystkich wygenerowanych wewnątrz drzew decyzyjnych, a nie jednego, prostego równania.
+
+[**Konfiguracja hiperparametrów algorytmu**]{style="font-size: 1.3em;"}
+
+Przed uruchomieniem treningu Lasu Losowego, niezbędne było narzucenie modelowi sztywnych ograniczeń (tzw. hiperparametrów) w celu optymalizacji jego pracy i zabezpieczenia przed przeuczeniem (ang. *overfitting*):
+
+- **Liczba drzew (**`trees = 500`**):** Wybrano optymalną i stabilną wielkość generowanego zespołu. Zapewnia ona odpowiednie wygładzenie predykcji bez nadmiernego i zbędnego obciążania zasobów obliczeniowych.
+
+- **Wielkość węzła końcowego (**`min_n = 5`**):** Najważniejszy mechanizm regularyzacyjny. Zmusza algorytm do zatrzymania podziału danych, gdy w grupie zostaje 5 lub mniej obserwacji. Uniemożliwia to izolowanie pojedynczych próbek, zmuszając model do wyciągania szerszych wniosków z receptur, a nie uczenia się ich na pamięć.
+
+- **Ocena zmiennych (**`importance = "permutation"`**):** Uruchomiono mechanizm permutacji (losowego tasowania wartości cech) po zakończeniu uczenia. Dzięki temu algorytm automatycznie oszacuje, w jakim stopniu usunięcie danego składnika z zaprawy wpływa na drastyczny wzrost błędów predykcyjnych.
+
+[**Analiza wyników**]{style="font-size: 1.3em;"}
+
+Ponieważ w procesie tym nie występują klasyczne parametry matematyczne do wyświetlenia, natychmiast po wytrenowaniu modelu przechodzimy do weryfikacji jego zdolności do odwzorowania wytrzymałości kompozytu na podstawie danych z laboratorium.
+
+```{r}
+#| label: 4-3-1-rf-dopasowanie-i-predykcja
+#| message: false
+#| warning: false
+
+library(tidymodels)
+library(ggplot2)
+library(patchwork)
+library(gt)
+
+# 1. TRENOWANIE MODELI
+model_rf_fit_rozciaganie <- wf_rf_rozciaganie |> fit(data = dane_treningowe)
+model_rf_fit_sciskanie <- wf_rf_sciskanie |> fit(data = dane_treningowe)
+
+# 2. OBLICZANIE PREDYKCJI
+rf_trening_pred_rozciaganie <- augment(model_rf_fit_rozciaganie, new_data = dane_treningowe)
+rf_trening_pred_sciskanie <- augment(model_rf_fit_sciskanie, new_data = dane_treningowe)
+
+# 3. METRYKI BŁĘDU (ROZCIĄGANIE)
+metryki_rf_rozciaganie <- metrics(rf_trening_pred_rozciaganie, truth = wytrzymalosc_rozciaganie, estimate = .pred)
+
+metryki_rf_rozciaganie |> 
+  select(.metric, .estimate) |> 
+  gt() |> 
+  tab_header(title = "Miary błędu - Las Losowy (Rozciąganie)") |> 
+  fmt_number(columns = .estimate, decimals = 3)
+
+# 4. METRYKI BŁĘDU (ŚCISKANIE)
+metryki_rf_sciskanie <- metrics(rf_trening_pred_sciskanie, truth = wytrzymalosc_sciskanie, estimate = .pred)
+
+metryki_rf_sciskanie |> 
+  select(.metric, .estimate) |> 
+  gt() |> 
+  tab_header(title = "Miary błędu - Las Losowy (Ściskanie)") |> 
+  fmt_number(columns = .estimate, decimals = 3)
+#| label: 4-3-1a-rf-rzeczywiste-parametry
+#| message: false
+#| warning: false
+
+# 5. RZECZYWISTE HIPERPARAMETRY (Wyciągnięte po udanym treningu)
+rf_ranger <- extract_fit_engine(model_rf_fit_rozciaganie)
+
+tibble(
+  `Hiperparametr` = c(
+    "Liczba drzew (num.trees)", 
+    "Minimalna wielkość węzła (min.node.size)", 
+    "Losowane predyktory na podział (mtry)"
+  ),
+  `Zastosowana wartość` = c(
+    rf_ranger$num.trees, 
+    rf_ranger$min.node.size, 
+    rf_ranger$mtry
+  )
+) |> 
+  gt() |> 
+  tab_header(
+    title = "Rzeczywiste hiperparametry algorytmu",
+    subtitle = "Wyciągnięte z silnika Lasu Losowego po treningu"
+  ) |> 
+  cols_align(align = "center", columns = `Zastosowana wartość`)
+```
+
+Wizualizacja skuteczności na zbiorze uczącym:
+
+```{r}
+#| label: 4-3-2-rf-wykresy
+#| message: false
+#| warning: false
+
+p_rf_rozciaganie <- ggplot(rf_trening_pred_rozciaganie, aes(x = wytrzymalosc_rozciaganie, y = .pred)) +
+  geom_point(color = "#2ca25f", size = 2) +
+  geom_abline(lty = 2, color = "red", linewidth = 1) +
+  coord_obs_pred() +
+  labs(
+    title = "Las Losowy: Rozciąganie",
+    x = "Rzeczywista wytrzymałość [MPa]",
+    y = "Przewidywana [MPa]"
+  ) +
+  theme_minimal(base_size = 10)
+
+p_rf_sciskanie <- ggplot(rf_trening_pred_sciskanie, aes(x = wytrzymalosc_sciskanie, y = .pred)) +
+  geom_point(color = "#2ca25f", size = 2) +
+  geom_abline(lty = 2, color = "red", linewidth = 1) +
+  coord_obs_pred() +
+  labs(
+    title = "Las Losowy: Ściskanie",
+    x = "Rzeczywista wytrzymałość [MPa]",
+    y = "Przewidywana [MPa]"
+  ) +
+  theme_minimal(base_size = 10)
+
+p_rf_rozciaganie + p_rf_sciskanie
+```
+
+Zgodnie z naturą zaawansowanych algorytmów uczenia maszynowego, Las Losowy osiągnął najlepsze wskaźniki na zbiorze uczącym spośród wszystkich testowanych metod. Dla wytrzymałości na rozciąganie $R^2$ wyniosło $0.81$, a dla ściskania osiągnięto skokowy wręcz wzrost aż do niemal $0.70$ ($0.695$). Błędy RMSE uległy radykalnemu zmniejszeniu. Niemniej jednak, te niemal perfekcyjne wyniki na danych historycznych nie mogą stanowić ostatecznego dowodu na wyższość tego modelu w praktyce inżynierskiej. Algorytm ten jest na tyle elastyczny, że istnieje poważne ryzyko tzw. zjawiska przeuczenia (overfittingu) – mógł on "nauczyć się na pamięć" specyficznych receptur z laboratorium. Prawdziwy, miarodajny test wszystkich trzech wariantów statystycznych zostanie przeprowadzony w kolejnym rozdziale, na odłożonym w sejfie zbiorze testowym.
+
+[**Analiza ważności zmiennych**]{style="font-size: 1.3em;"}
+
+Jedną z największych zalet algorytmu Lasu Losowego jest to, że pozwala na precyzyjne określenie ważności cech (ang. *Feature Importance*). Dzięki metodzie permutacji zastosowanej podczas uczenia możemy bezsprzecznie ustalić, który składnik zaprawy miał ostatecznie największy wpływ na poprawę predykcji.
+
+```{r}
+#| label: 4-4-1-rf-waznosc
+#| message: false
+#| warning: false
+
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+library(tibble)
+
+# Wyodrębnienie wytrenowanych silników RF
+rf_silnik_rozciaganie <- extract_fit_engine(model_rf_fit_rozciaganie)
+rf_silnik_sciskanie <- extract_fit_engine(model_rf_fit_sciskanie)
+
+# Przekształcenie danych do wykresów
+waznosc_rozciaganie <- enframe(rf_silnik_rozciaganie$variable.importance, name = "Zmienna", value = "Waznosc") |> 
+  arrange(Waznosc) |> 
+  mutate(Zmienna = factor(Zmienna, levels = Zmienna))
+
+waznosc_sciskanie <- enframe(rf_silnik_sciskanie$variable.importance, name = "Zmienna", value = "Waznosc") |> 
+  arrange(Waznosc) |> 
+  mutate(Zmienna = factor(Zmienna, levels = Zmienna))
+
+# Generowanie wykresów Z NIEZALEŻNYMI OSIAMI (automatyczne skalowanie)
+vip_rozciaganie <- ggplot(waznosc_rozciaganie, aes(x = Waznosc, y = Zmienna)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Ważność: Rozciąganie", x = "Istotność względem błędu", y = NULL) +
+  theme_minimal(base_size = 11)
+
+vip_sciskanie <- ggplot(waznosc_sciskanie, aes(x = Waznosc, y = Zmienna)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Ważność: Ściskanie", x = "Istotność względem błędu", y = NULL) +
+  theme_minimal(base_size = 11)
+
+vip_rozciaganie + vip_sciskanie
+```
+
+Powyższe wykresy jednoznacznie potwierdzają obserwacje z fazy eksploracji danych. W przypadku wytrzymałości na rozciąganie, o trafności predykcji decydują przede wszystkim parametry zbrojenia (zawartość i długość włókna) oraz wskaźnik w/c. Z kolei dla wytrzymałości na ściskanie parametry włókien mają drugorzędne znaczenie, a algorytm opiera swoje prognozy głównie na konsystencji świeżej mieszanki.
+
+# Weryfikacja Wyników
+
+Celem niniejszego rozdziału jest obiektywna, ilościowa ocena zdolności generalizacyjnych wytrenowanych modeli statystycznych. Weryfikacja przeprowadzana jest wyłącznie na wyodrębnionym wcześniej zbiorze testowym (20% oryginalnych danych), co pozwala zidentyfikować ewentualne zjawisko przeuczenia (overfittingu) oraz wyłonić algorytm najlepiej prognozujący rzeczywiste parametry mechaniczne nowych kompozytów.
+
+[**Zestawienie tabelaryczne metryk błędów**]{style="font-size: 1.3em;"}
+
+W pierwszej kolejności wygenerowano predykcje na danych testowych dla wszystkich trzech algorytmów. Następnie obliczono klasyczne miary błędu: błąd średniokwadratowy (RMSE), współczynnik determinacji (\$R\^2\$) oraz średni błąd bezwzględny (MAE).
+
+```{r}
+#| label: 5-1-metryki-testowe
+#| message: false
+#| warning: false
+
+library(dplyr)
+library(tidymodels)
+library(gt)
+
+# --- 1. GENEROWANIE PREDYKCJI DLA ZBIORU TESTOWEGO ---
+# Zestawienie predykcji dla Rozciągania
+pred_test_rozciaganie <- bind_rows(
+  augment(model_lm_fit_rozciaganie, new_data = dane_testowe) |> mutate(Model = "Liniowy (MLR)"),
+  augment(model_poly_fit_rozciaganie, new_data = dane_testowe) |> mutate(Model = "Wielomianowy (2. st.)"),
+  augment(model_rf_fit_rozciaganie, new_data = dane_testowe) |> mutate(Model = "Las Losowy")
+) |> 
+  mutate(Model = factor(Model, levels = c("Liniowy (MLR)", "Wielomianowy (2. st.)", "Las Losowy")))
+
+# Zestawienie predykcji dla Ściskania
+pred_test_sciskanie <- bind_rows(
+  augment(model_lm_fit_sciskanie, new_data = dane_testowe) |> mutate(Model = "Liniowy (MLR)"),
+  augment(model_poly_fit_sciskanie, new_data = dane_testowe) |> mutate(Model = "Wielomianowy (2. st.)"),
+  augment(model_rf_fit_sciskanie, new_data = dane_testowe) |> mutate(Model = "Las Losowy")
+) |> 
+  mutate(Model = factor(Model, levels = c("Liniowy (MLR)", "Wielomianowy (2. st.)", "Las Losowy")))
+
+# --- 2. OBLICZANIE METRYK ---
+metryki_rozciaganie <- pred_test_rozciaganie |> 
+  group_by(Model) |> 
+  metrics(truth = wytrzymalosc_rozciaganie, estimate = .pred) |> 
+  mutate(Wlasciwosc = "Rozciąganie")
+
+metryki_sciskanie <- pred_test_sciskanie |> 
+  group_by(Model) |> 
+  metrics(truth = wytrzymalosc_sciskanie, estimate = .pred) |> 
+  mutate(Wlasciwosc = "Ściskanie")
+
+# --- 3. FORMATOWANIE TABELI ZBIORCZEJ ---
+bind_rows(metryki_rozciaganie, metryki_sciskanie) |> 
+  select(Wlasciwosc, Model, .metric, .estimate) |> 
+  tidyr::pivot_wider(names_from = .metric, values_from = .estimate) |> 
+  gt(groupname_col = "Wlasciwosc") |> 
+  tab_header(
+    title = md("**Porównanie skuteczności modeli na zbiorze testowym**"),
+    subtitle = "Zdolność generalizacyjna algorytmów na nowych danych"
+  ) |> 
+  fmt_number(columns = c(rmse, rsq, mae), decimals = 3) |> 
+  cols_label(
+    Model = "Algorytm",
+    rmse = "RMSE [MPa]",
+    rsq = md("$R^2$"),
+    mae = "MAE [MPa]"
+  ) |> 
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_row_groups()
+  ) |> 
+  opt_align_table_header(align = "left")
+```
+
+[**Wizualizacja predykcji na wspólnym układzie współrzędnych**]{style="font-size: 1.3em;"}
+
+```{r}
+#| label: 5-2-wykresy-testowe
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 6
+
+library(ggplot2)
+library(patchwork)
+
+# Wykres zbiorczy - Rozciąganie
+p_test_rozc <- ggplot(pred_test_rozciaganie, aes(x = wytrzymalosc_rozciaganie, y = .pred, color = Model, shape = Model)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2, color = "grey40", linewidth = 0.8) +
+  geom_point(size = 3.5, alpha = 0.75) +
+  scale_color_manual(values = c("#E69F00", "#56B4E9", "#009E73")) +
+  labs(
+    title = "Wytrzymałość na rozciąganie",
+    x = "Wartość laboratoryjna [MPa]",
+    y = "Predykcja modelu [MPa]"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+# Wykres zbiorczy - Ściskanie
+p_test_scisk <- ggplot(pred_test_sciskanie, aes(x = wytrzymalosc_sciskanie, y = .pred, color = Model, shape = Model)) +
+  geom_abline(intercept = 0, slope = 1, lty = 2, color = "grey40", linewidth = 0.8) +
+  geom_point(size = 3.5, alpha = 0.75) +
+  scale_color_manual(values = c("#E69F00", "#56B4E9", "#009E73")) +
+  labs(
+    title = "Wytrzymałość na ściskanie",
+    x = "Wartość laboratoryjna [MPa]",
+    y = "Predykcja modelu [MPa]"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+# Złożenie wykresów za pomocą patchwork (uwspólniona legenda)
+p_test_rozc + p_test_scisk + 
+  plot_layout(guides = "collect") & 
+  theme(legend.position = 'bottom')
+```
+
+Na podstawie obiektywnej ewaluacji numerycznej oraz graficznej analizy predykcji na niewidzianym wcześniej zbiorze testowym, sformułowano następujące wnioski techniczne:
+
+- **Deficyty modeli parametrycznych:** Klasyczny Model Liniowy (MLR) nie jest w stanie opisać badanych zjawisk. O ile dla rozciągania zachowuje minimalną użyteczność, o tyle w przypadku wytrzymałości na ściskanie jego predykcja całkowicie zawodzi ($R^2 = 0.034$). Potwierdza to, że wpływ ilości i długości włókien oraz wskaźnika $w/c$ na matrycę cementową ma charakter silnie nieliniowy.
+
+- **Poprawa dzięki efektom krzywoliniowym:** Rozszerzenie przestrzeni cech o wielomiany 2. stopnia przyniosło skokową poprawę dopasowania. Błąd RMSE dla ściskania spadł z 2.849 do 2.240 MPa, co dowodzi, że w kompozycie występują optymalne "progi" dozowania składników, które równanie wielomianowe potrafi częściowo aproksymować.
+
+- **Dominacja Lasu Losowego w warunkach rzeczywistych:** Algorytm Random Forest udowodnił najwyższą zdolność generalizacyjną i nie uległ zjawisku przeuczenia. Osiągnął najwyższe współczynniki determinacji (odpowiednio $R^2 = 0.767$ dla rozciągania i $0.571$ dla ściskania) oraz najniższe średnie błędy bezwzględne (MAE). Na wykresach rozrzutu zielone znaczniki tego modelu najgęściej skupiają się wokół przerywanej linii bezbłędnej predykcji.
+
+- **Ograniczenia w ekstremach i rekomendacja:** Na wykresach zauważalne jest, że wszystkie modele (w tym Las Losowy) mają tendencję do niedoszacowywania skrajnie wysokich wartości wytrzymałości (np. powyżej 4.5 MPa przy rozciąganiu). Wynika to ze specyfiki małych prób badawczych. Mimo to, ze względu na najwyższą precyzję, do dalszych prac badawczych i optymalizacji nowych receptur kompozytów rekomenduje się wyłącznie model Lasu Losowego.
